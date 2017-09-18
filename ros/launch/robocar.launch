@@ -1,0 +1,8 @@
+<launch>
+  <param name="joy_node/dev" value="/dev/input/js0" type="str"/>
+
+  <node name="joystick_input" pkg="joy" type="joy_node"/>
+  <node name="remote_control" pkg="remote_control" type="remote_control.py" />
+  <node name="car_control_serial" pkg="rosserial_python" type="serial_node.py" args="/dev/ttyUSB0" />
+
+</launch>

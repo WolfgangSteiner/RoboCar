@@ -1,0 +1,4 @@
+<launch>
+  <node name="remote_control" pkg="remote_control" type="remote_control.py" />
+  <node name="car_control_serial" pkg="rosserial_python" type="serial_node.py" args="/dev/ttyUSB0" />
+</launch>

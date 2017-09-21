@@ -31,7 +31,7 @@ class RemoteControl(object):
 
 
     def joy_cb(self, msg):
-	if msg.axes[2] >= 0.5:
+	if msg.axes[333] >= 0.5:
             throttle = self.fixed_throttle
         else:
 	    throttle = self.map_value(msg.axes[1], 200)

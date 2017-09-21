@@ -10,6 +10,7 @@ class RemoteControl(object):
         self.joy_deadband = 0.1
         self.last_steer = 1500
         self.last_throttle = 1500
+	self.fixed_throttle = 1600
 
 
         rospy.init_node('remote_control')
@@ -30,10 +31,14 @@ class RemoteControl(object):
 
 
     def joy_cb(self, msg):
-        throttle = self.map_value(msg.axes[1], 200)
+	if msg.axes[2] >= 0.5:
+            throttle = self.fixed_throttle
+        else:
+	    throttle = self.map_value(msg.axes[1], 200)
+        
         steer = self.map_value(-msg.axes[2], 350)
 
-        if throttle != self.last_throttle:
+	if throttle != self.last_throttle:
             self.throttle_pub.publish(throttle)
             self.last_throttle = throttle
 

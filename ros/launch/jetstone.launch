@@ -2,4 +2,5 @@
   <node name="remote_control" pkg="remote_control" type="remote_control.py" />
   <node name="car_control_serial" pkg="rosserial_python" type="serial_node.py" args="/dev/ttyUSB0" />
   <node name="front_camera" pkg="usb_cam" type="usb_cam_node" args="_video_device:=/dev/video1" />
+  <node name="perception" pkg="perception" type="perception.py" />
 </launch>

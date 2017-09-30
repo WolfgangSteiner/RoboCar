@@ -40,7 +40,7 @@ class Perception(object):
         #     self.x_anchor_right,
         #     self.xm_per_px, self.ym_per_px)
 
-        self.load_model()
+        #self.load_model()
 
         for topic in ("warped",):
             self.add_image_publisher(topic)
@@ -143,10 +143,11 @@ class Perception(object):
 
         self.publish_image("warped", img_warped_gray_scaled, flip='y')
 
-        X = preprocess_image(img_warped_gray_scaled).reshape((1,64,64,1))
-        steering_angle_rel = float(self.model.predict(X, batch_size=1))
-        print steering_angle_rel
-        self.publishers["steering_rel"].publish(steering_angle_rel)
+        if self.model is not None:
+            X = preprocess_image(img_warped_gray_scaled).reshape((1,64,64,1))
+            steering_angle_rel = float(self.model.predict(X, batch_size=1))
+            print steering_angle_rel
+            self.publishers["steering_rel"].publish(steering_angle_rel)
 
 
         # img_canny = self.canny_edge_detection(img_gray)

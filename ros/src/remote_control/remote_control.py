@@ -40,6 +40,7 @@ class RemoteControl(object):
         rospy.Subscriber("/joy", Joy, self.joy_cb)
 
         self.button_handlers = []
+        self.add_button_handler(3, "/autonomous_signal")     
         self.add_button_handler(4, "/record_telemetry")     
         self.add_button_handler(1, "/stop_signal", self.on_all_stop)
 

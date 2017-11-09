@@ -3,5 +3,7 @@
   <node name="car_control_serial" pkg="rosserial_python" type="serial_node.py" args="/dev/ttyUSB0" />
   <node name="front_camera" pkg="usb_cam" type="usb_cam_node" args="_video_device:=/dev/video1" />
   <node name="image_proc" pkg="image_proc" type="image_proc" ns="front_camera"/>
-  <node name="perception" pkg="perception" type="perception.py" />
+  <node name="image_preprocessing" pkg="image_preprocessing" type="image_preprocessing.py" />
+  <node name="record_telemetry" pkg="record_telemetry" type="record_telemetry.py" />
+  <node name="perception" pkg="perception" type="perception.py" /> 
 </launch>

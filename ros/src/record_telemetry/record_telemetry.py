@@ -5,6 +5,7 @@ import rosbag
 import datetime
 from std_msgs.msg import Int16, Bool
 from sensor_msgs.msg import Image
+from threading import Lock
 
 
 def bag_filename(dir="."):
@@ -25,6 +26,7 @@ class RecordTelemetry(object):
     def __init__(self):
         self.last_steering_us = 1500
         self.last_throttle_us = 1500
+        self.lock = Lock()
         self.bag = None
         rospy.init_node('record_telemetry')
         rospy.Subscriber("/steering_value_us", Int16, self.steering_callback)
@@ -36,6 +38,7 @@ class RecordTelemetry(object):
 
     
     def record_callback(self, msg):
+        self.lock.acquire()
         if msg.data and self.bag is None:
             self.bag = rosbag.Bag(bag_filename(), 'w')
             self.bag.write("/steering_value_us", make_int_msg(self.last_steering_us))
@@ -43,23 +46,31 @@ class RecordTelemetry(object):
         elif not msg.data and self.bag is not None:
             self.bag.close()
             self.bag = None
+        self.lock.release()
 
 
     def steering_callback(self, msg):
-        self.last_steering_value_us = msg.data
+        self.last_steering_us = msg.data
+        self.lock.acquire()
         if self.bag is not None:
             self.bag.write("/steering_value_us", msg) 
+        self.lock.release()
 
 
     def throttle_callback(self, msg):
-        self.last_throttle_value_us = msg.data
+        self.last_throttle_us = msg.data
+        self.lock.acquire()
         if self.bag is not None:
             self.bag.write("/throttle_value_us", msg) 
+        self.lock.release()
 
 
     def image_callback(self, msg):
+        self.lock.acquire()
         if self.bag is not None:
             self.bag.write("/front_camera/image_warped", msg)
+        self.lock.release()
+
 
 if __name__ == "__main__":
     try:

@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image, ImageOps, ImageDraw, ImageFilter
 import Common
 import math, random
-
+import os
 
 max_steering_angle = 20.0
 
@@ -47,7 +47,7 @@ def DataGenerator(data, batch_size=64, augment_data=True):
                     break
 
             img = Image.open(file_name)
-            dir_name,file_name = file_name.split('/')
+            dir_name,file_name = os.path.split(file_name)
 
             if dir_name.startswith("recovery_left"):
                 angle += recovery_angle_b / max_steering_angle
@@ -64,7 +64,7 @@ def DataGenerator(data, batch_size=64, augment_data=True):
 #                img, angle = random_translate(img, angle)
 
             img, angle = random_mirror(img, angle)
-            img_data = Common.preprocess_image(np.array(img)).reshape((64,64,1))
+            img_data = Common.preprocess_image(np.array(img)).reshape((64,64,3))
             X.append(img_data)
             y.append(max(min(angle, 1.0), -1.0))
 

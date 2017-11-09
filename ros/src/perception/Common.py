@@ -14,7 +14,7 @@ def steering_angle_deg(steering_value_rel):
 
 def load_data(dir):
     data = []
-    for f in glob.glob(dir + "/*.png"):
+    for f in glob.glob(dir + "/*/*.png"):
         sv_us = int(f.split(".")[1].split("_")[-1])
         sv_rel = steering_value_rel(sv_us)
         steering_angle = steering_angle_deg(sv_rel)

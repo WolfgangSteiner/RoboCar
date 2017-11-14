@@ -10,6 +10,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from Utils import date_file_name
 from glob import glob
+import yaml
 
 
 # Reading bag filename from command line or roslaunch parameter.
@@ -21,28 +22,36 @@ data_dir = "./data"
 
 bridge = CvBridge()
 
+
+def write_metadata(image_path, steering_value, throttle_value):
+    d = {'steering_value': steering_value, 'throttle_value': throttle_value}
+    with open(image_path + ".yaml", 'w') as yaml_file:
+        yaml.dump(d, yaml_file)
+
+
 def extract_rosbag(bag_file, out_path):
-    current_steering_value = 1500
+    steering_value = 0.0 
+    throttle_value = 0.0
 
     with rosbag.Bag(bag_file, 'r') as bag:
-        try:
-            for topic, msg, t in bag.read_messages():
-                if topic == "/steering_value_us":
-                    current_steering_value = msg.data
+        for topic, msg, t in bag.read_messages():
+            if topic == "/steering_value":
+                steering_value = msg.data
 
-                elif topic == "/front_camera/image_warped":
-                    try:
-                        cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")
-                    except CvBridgeError, e:
-                        print e
-                    image_name = "%06d" % msg.header.seq
-                    image_name += "_%d" % current_steering_value
-                    image_name += ".png"
-                    image_name = os.path.join(out_path, image_name)
-                    print image_name
-                    cv2.imwrite(image_name, cv_image)
-        except:
-            pass
+            elif topic == "/throttle_value":
+                throttle_value = msg.data
+
+            elif topic == "/front_camera/image_warped":
+                try:
+                    cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")
+                except CvBridgeError, e:
+                    print e
+                    continue
+
+                image_path = os.path.join(out_path, "%06d" % msg.header.seq)
+                print image_path
+                cv2.imwrite(image_path + ".png", cv_image)
+                write_metadata(image_path, steering_value, throttle_value) 
 
 
 for bag_file in glob(os.path.join(rosbag_dir, "*.bag")):

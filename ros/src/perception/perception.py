@@ -84,7 +84,6 @@ class Perception(object):
     def front_camera_callback(self, msg):
         self.lock.acquire()
         if self.model is not None:
-            rospy.loginfo("Prediction")
             img = self.bridge.imgmsg_to_cv2(msg)
             X = preprocess_image(img).reshape((1,64,64,3))
             with self.graph.as_default():

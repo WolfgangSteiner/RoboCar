@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import String,Int16,Bool
+from std_msgs.msg import String,Float32,Bool
 from sensor_msgs.msg import Joy
 import numpy as np
 
@@ -25,17 +25,17 @@ class ButtonHandler(object):
 
 class RemoteControl(object):
     def __init__(self):
-        self.max_throttle = 200
+        self.max_throttle = 1.0
         self.joy_deadband = 0.1
-        self.last_steer = 1500
-        self.last_throttle = 1500
-        self.fixed_throttle_slow = 1610
-        self.fixed_throttle_fast = 1650
+        self.last_steer = 0.0
+        self.last_throttle = 0.0
+        self.fixed_throttle_slow = 0.55
+        self.fixed_throttle_fast = 0.75
 
         rospy.init_node('remote_control')
         self.publisher = {}
-        self.publisher["steering"] = rospy.Publisher('/steering_value_us', Int16, queue_size=128)
-        self.publisher["throttle"] = rospy.Publisher('/throttle_value_us', Int16, queue_size=128)
+        self.publisher["steering"] = rospy.Publisher('/steering_value', Float32, queue_size=128)
+        self.publisher["throttle"] = rospy.Publisher('/throttle_value', Float32, queue_size=128)
         self.publisher["stop"] = rospy.Publisher('/stop_signal', Bool, queue_size=128)
         rospy.Subscriber("/joy", Joy, self.joy_cb)
 
@@ -51,19 +51,19 @@ class RemoteControl(object):
         self.button_handlers.append(ButtonHandler(button_idx, topic_name, on_true=on_true))
 
 
-    def map_value(self, joy_value, max_displacement):
+    def map_value(self, joy_value):
         value_sign = np.sign(joy_value)
         value = abs(joy_value)
         if value < self.joy_deadband:
-            return 1500
+            return 0.0 
         else:
             value -= self.joy_deadband
-            return 1500 + max_displacement * value_sign * value / (1.0 - self.joy_deadband)
+            return value_sign * value / (1.0 - self.joy_deadband)
 
 
     def on_all_stop(self):
-        self.publisher["throttle"].publish(1500)
-        self.publisher["steering"].publish(1500)
+        self.publisher["throttle"].publish(0.0)
+        self.publisher["steering"].publish(0.0)
 
 
     def joy_cb(self, msg):
@@ -76,9 +76,9 @@ class RemoteControl(object):
         elif msg.axes[5] < 0.0:
             throttle = self.fixed_throttle_fast
         else:
-            throttle = self.map_value(msg.axes[1], 200)
+            throttle = self.map_value(msg.axes[1])
             
-        steer = self.map_value(-msg.axes[3], 350)
+        steer = self.map_value(-msg.axes[3])
 
         if throttle != self.last_throttle:
             self.publisher["throttle"].publish(throttle)

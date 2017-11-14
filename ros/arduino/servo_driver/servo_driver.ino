@@ -1,35 +1,48 @@
 #include <ros.h>
-#include <std_msgs/Int16.h>
+#include <std_msgs/Float32.h>
 #include <std_msgs/Bool.h>
 #include <Servo.h>
 
 ros::NodeHandle node_handle;
 
 Servo steering, throttle;
-const int KMaxSteer = 400;
+const int KMaxSteer = 350;
 const int KMinThrottle = -200;
 const int KMaxThrottle = 200;
 bool stop_value = false;
 
 
-void steer_callback(const std_msgs::Int16& msg)
+int map_value(float in_value, int min_value, int max_value)
+{
+  int in_value_us;
+  
+  if (in_value < 0.0)
+  {
+    in_value_us = int(in_value * abs(min_value)) + 1500;
+  }
+  else
+  {
+    in_value_us = int(in_value * max_value) + 1500;
+  }
+  
+  return constrain(in_value_us, 1500 + min_value, 1500 + max_value);
+}
+
+
+void steer_callback(const std_msgs::Float32& msg)
 {
   if (!stop_value)
   {
-    const int in_value = msg.data;
-    const int out_value = constrain(in_value, 1500 - KMaxSteer, 1500 + KMaxSteer);
-    steering.writeMicroseconds(out_value);
+    steering.writeMicroseconds(map_value(msg.data, -KMaxSteer, KMaxSteer));
   }
 }
 
 
-void throttle_callback(const std_msgs::Int16& msg)
+void throttle_callback(const std_msgs::Float32& msg)
 {
   if (!stop_value)
   {
-    const int in_value = msg.data;
-    const int out_value = constrain(in_value, 1500 + KMinThrottle, 1500 + KMaxThrottle);
-    throttle.writeMicroseconds(out_value);
+    throttle.writeMicroseconds(map_value(msg.data, KMinThrottle, KMaxThrottle));
   }
 }
 
@@ -44,8 +57,8 @@ void stop_callback(const std_msgs::Bool& msg)
   }
 }
 
-ros::Subscriber<std_msgs::Int16> steering_sub("/steering_value_us", &steer_callback);
-ros::Subscriber<std_msgs::Int16> throttle_sub("/throttle_value_us", &throttle_callback);
+ros::Subscriber<std_msgs::Float32> steering_sub("/steering_value", &steer_callback);
+ros::Subscriber<std_msgs::Float32> throttle_sub("/throttle_value", &throttle_callback);
 ros::Subscriber<std_msgs::Bool> stop_sub("/stop_signal", &stop_callback);
 
 void setup()

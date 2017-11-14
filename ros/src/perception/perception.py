@@ -9,6 +9,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Int16, Float32, Bool
 from Common import preprocess_image
 from keras.models import load_model
+import keras
 import tensorflow as tf
 from threading import Lock
 
@@ -76,6 +77,7 @@ class Perception(object):
             self.lock.acquire()
             self.model = None
             self.graph = None
+            keras.backend.clear_session()
             self.lock.release()
 
 

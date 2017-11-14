@@ -29,7 +29,7 @@ class Perception(object):
         rospy.Subscriber("/stop_signal", Bool, self.stop_all_callback)
 
         self.publishers = {}
-        self.publishers["steering"] = rospy.Publisher("/steering_value_us", Int16)
+        self.publishers["steering"] = rospy.Publisher("/steering_value", Float32)
         
         rospy.loginfo("Done initializing perception node.")
         rospy.spin()
@@ -75,9 +75,8 @@ class Perception(object):
             img = self.bridge.imgmsg_to_cv2(msg)
             X = preprocess_image(img).reshape((1,64,64,3))
             with self.graph.as_default():
-                steering_angle_rel = float(self.model.predict(X, batch_size=1))
-	    steering_value_us = steering_angle_rel * 350 + 1500
-            self.publishers["steering"].publish(steering_value_us)
+                steering_value = float(self.model.predict(X, batch_size=1))
+            self.publishers["steering"].publish(steering_value)
         self.lock.release()
 
 if __name__ == "__main__":

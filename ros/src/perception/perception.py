@@ -13,6 +13,17 @@ import tensorflow as tf
 from threading import Lock
 
 
+class LowPassFilter(object):
+    def __init__(self, filter_constant):
+        self.last_value = 0.0
+        self.a = filter_constant
+
+    def __call__(self, value):
+        new_value = value * self.a + self.last_value * (1.0 - self.a)
+        self.last_value = new_value
+        return new_value
+
+
 class Perception(object):
     def __init__(self):
         self.model = None
@@ -20,7 +31,7 @@ class Perception(object):
         self.load_model()
         self.bridge = CvBridge()
         self.timer = None
-
+        self.steering_filter = LowPassFilter(0.5)
         self.lock = Lock()
 
         rospy.init_node("perception", log_level=rospy.INFO)
@@ -76,6 +87,7 @@ class Perception(object):
             X = preprocess_image(img).reshape((1,64,64,3))
             with self.graph.as_default():
                 steering_value = float(self.model.predict(X, batch_size=1))
+            steering_value = self.steering_filter(steering_value)
             self.publishers["steering"].publish(steering_value)
         self.lock.release()
 

@@ -41,6 +41,16 @@ def extract_rosbag(bag_file, out_path):
             elif topic == "/throttle_value":
                 throttle_value = msg.data
 
+            # Legacy code for old rosbags:
+            elif topic == "/steering_value_us":
+                steering_value = (msg.data - 1500) / 350.0
+
+
+            # Legacy code for old rosbags:
+            elif topic == "/throttle_value_us":
+                throttle_value = (msg.data - 1500) / 200.0
+
+
             elif topic == "/front_camera/image_warped":
                 try:
                     cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")

@@ -28,12 +28,18 @@ def random_mirror(img, steering_angle):
     return img, steering_angle
 
 
+def reshape_img(img):
+    shape = img.shape
+    if len(shape) == 2:
+        shape = (shape[0], shape[1], 1)
+
+    return img.reshape(shape)
+
+
+
 def DataGenerator(data, batch_size=64, augment_data=True):
     num_data = len(data)
     idx = 0
-    recovery_angle_a = 7.5
-    recovery_angle_b = 15.0
-    side_camera_angle = 0.5
 
     while True:
         X = []
@@ -41,31 +47,15 @@ def DataGenerator(data, batch_size=64, augment_data=True):
         for i in range(0,batch_size):
             while True:
                 file_name, angle = data[idx]
-                steering_angle = max_steering_angle * angle
                 idx = (idx + 1) % num_data
                 if True or angle >= 0.01 or random.random() < 0.25:
                     break
 
             img = Image.open(file_name)
-            dir_name,file_name = os.path.split(file_name)
-
-            if dir_name.startswith("recovery_left"):
-                angle += recovery_angle_b / max_steering_angle
-            elif dir_name.startswith("recovery_right"):
-                angle -= recovery_angle_b / max_steering_angle
-
-            if dir_name.startswith("lane_left"):
-                angle += recovery_angle_a / max_steering_angle
-            elif dir_name.startswith("lane_right"):
-                angle -= recovery_angle_a / max_steering_angle
-
-            if False and augment_data:
-                 img, angle = random_rotate(img, angle)
-#                img, angle = random_translate(img, angle)
-
             img, angle = random_mirror(img, angle)
-            img_data = Common.preprocess_image(np.array(img)).reshape((64,64,3))
-            X.append(img_data)
+            img = Common.preprocess_image(np.array(img))
+            img = reshape_img(img)
+            X.append(img)
             y.append(max(min(angle, 1.0), -1.0))
 
         yield np.array(X), np.array(y)
@@ -77,13 +67,12 @@ if __name__ == '__main__':
     w = 64
     h = 64
 
-    dirs = "center_01"#,recovery_left_01,recovery_right_01,lane_left_01,lane_right_01"
-    #dirs = "center_01"
+    dirs = "data"
     data = []
     for d in dirs.split(','):
         data += Common.load_data(d)
 
-    #random.shuffle(data)
+    random.shuffle(data)
 
     overview_img = Image.new("RGBA",(w * num_cols, h * num_rows), (0,0,0))
     gen = DataGenerator(data, batch_size=num_rows * num_cols)
@@ -95,7 +84,10 @@ if __name__ == '__main__':
             idx = j*num_cols + i
             xi = i*w
             yi = j*h
-            img = Image.fromarray((X[idx] * 255.0 + 127.5).astype('uint8'))
+            img = (X[idx] * 255.0 + 127.5).astype('uint8')
+            if len(img.shape) == 3 and img.shape[2] == 1:
+                img = img.reshape(img.shape[0:2])
+            img = Image.fromarray(img)
             img.thumbnail((w,h), Image.ANTIALIAS)
             angle = y[idx]
             overview_img.paste(img, (xi,yi))

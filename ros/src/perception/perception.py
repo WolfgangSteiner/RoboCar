@@ -49,7 +49,7 @@ class Perception(object):
 
     def load_model(self):
         rospy.loginfo("Loading model.")
-        model_file = "/home/wolfgang/RoboCar/ros/src/perception/model.h5"
+        model_file = "model.h5"
 	self.model = load_model(model_file)
         self.model._make_predict_function()
 	self.graph = tf.get_default_graph()

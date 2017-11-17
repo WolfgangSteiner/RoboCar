@@ -57,7 +57,7 @@ class Perception(object):
 
     def autonomous_signal_callback(self, msg):
         if msg.data:
-            self.timer = rospy.Timer(rospy.Duration(3.0), self.on_enter_autonomous_mode, oneshot=True)
+            self.timer = rospy.Timer(rospy.Duration(1.0), self.on_enter_autonomous_mode, oneshot=True)
         elif self.timer is not None:
             self.timer.shutdown()
             self.timer = None

@@ -41,6 +41,7 @@ class Perception(object):
 
         self.publishers = {}
         self.publishers["steering"] = rospy.Publisher("/steering_value", Float32)
+        self.publishers["throttle"] = rospy.Publisher("/throttle_value", Float32)
         
         rospy.loginfo("Done initializing perception node.")
         rospy.spin()
@@ -89,6 +90,7 @@ class Perception(object):
                 steering_value = float(self.model.predict(X, batch_size=1))
             steering_value = self.steering_filter(steering_value)
             self.publishers["steering"].publish(steering_value)
+            self.publishers["throttle"].publish(0.6)
         self.lock.release()
 
 if __name__ == "__main__":

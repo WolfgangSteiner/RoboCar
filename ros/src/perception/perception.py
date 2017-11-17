@@ -31,7 +31,7 @@ class Perception(object):
         self.graph = None
         self.bridge = CvBridge()
         self.timer = None
-        self.steering_filter = LowPassFilter(0.5)
+        self.steering_filter = LowPassFilter(0.75)
         self.lock = Lock()
 
         rospy.init_node("perception", log_level=rospy.INFO)

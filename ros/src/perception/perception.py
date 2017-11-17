@@ -29,7 +29,6 @@ class Perception(object):
     def __init__(self):
         self.model = None
         self.graph = None
-        self.load_model()
         self.bridge = CvBridge()
         self.timer = None
         self.steering_filter = LowPassFilter(0.5)

@@ -85,7 +85,7 @@ class Perception(object):
         self.lock.acquire()
         if self.model is not None:
             img = self.bridge.imgmsg_to_cv2(msg)
-            X = preprocess_image(img).reshape((1,64,64,3))
+            X = preprocess_image(img).reshape((1,64,64,1))
             with self.graph.as_default():
                 steering_value = float(self.model.predict(X, batch_size=1))
             steering_value = self.steering_filter(steering_value)

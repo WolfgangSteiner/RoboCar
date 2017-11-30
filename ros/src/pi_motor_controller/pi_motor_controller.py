@@ -22,7 +22,7 @@ def truncate_velocity(vel):
     if vel < 0.1:
         vel = 0.0
     elif vel > 1.0:
-        vel = 10
+        vel = 1.0
     
     return vel
 

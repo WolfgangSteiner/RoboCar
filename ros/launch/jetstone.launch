@@ -1,8 +1,16 @@
 <launch>
+  <node name="joy_node" pkg="joy" type="joy_node" />
   <node name="remote_control" pkg="remote_control" type="remote_control.py" />
   <node name="car_control_serial" pkg="rosserial_python" type="serial_node.py" args="/dev/ttyUSB0" />
-  <node name="front_camera" pkg="usb_cam" type="usb_cam_node" args="_video_device:=/dev/video1" />
-  <node name="image_proc" pkg="image_proc" type="image_proc" ns="front_camera"/>
+  <node name="front_camera" pkg="usb_cam" type="usb_cam_node" >
+    <rosparam>
+      video_device: /dev/video1
+      autoexposure: false
+      exposure: 128
+      gain: 100
+    </rosparam>
+  </node>
+  <node name="image_proc" pkg="image_proc" type="image_proc" ns="front_camera" /> 
   <node name="image_preprocessing" pkg="image_preprocessing" type="image_preprocessing.py" />
   <node name="record_telemetry" pkg="record_telemetry" type="record_telemetry.py" />
   <node name="perception" pkg="perception" type="perception.py" /> 

@@ -11,14 +11,17 @@ from cv_bridge import CvBridge, CvBridgeError
 from Utils import date_file_name
 from glob import glob
 import yaml
-
+import argparse
 
 # Reading bag filename from command line or roslaunch parameter.
 import os
 import sys
 
-rosbag_dir = "../../rosbags"
-data_dir = "./data"
+
+parser = argparse.ArgumentParser()
+parser.add_argument("src_dir", type=str)
+parser.add_argument("dst_dir", type=str)
+args = parser.parse_args()
 
 bridge = CvBridge()
 
@@ -64,8 +67,8 @@ def extract_rosbag(bag_file, out_path):
                 write_metadata(image_path, steering_value, throttle_value) 
 
 
-for bag_file in glob(os.path.join(rosbag_dir, "*.bag")):
-    out_path = os.path.join(data_dir, os.path.splitext(os.path.split(bag_file)[1])[0])
+for bag_file in glob(os.path.join(args.src_dir, "*.bag")):
+    out_path = os.path.join(args.dst_dir, os.path.splitext(os.path.split(bag_file)[1])[0])
    
     if not os.path.exists(out_path):
         print "Extracting %s ..." % bag_file 

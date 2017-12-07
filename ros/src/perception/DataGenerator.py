@@ -1,5 +1,5 @@
 import numpy as np
-from PIL import Image, ImageOps, ImageDraw, ImageFilter
+from PIL import Image, ImageOps, ImageDraw, ImageFilter, ImageFont
 import Common
 import math, random
 import os
@@ -37,7 +37,7 @@ def reshape_img(img):
 
 
 
-def DataGenerator(data, batch_size=64, augment_data=True):
+def DataGenerator(data, batch_size=32, augment_data=True):
     num_data = len(data)
     idx = 0
 
@@ -62,12 +62,12 @@ def DataGenerator(data, batch_size=64, augment_data=True):
 
 
 if __name__ == '__main__':
-    num_cols = 24
-    num_rows = 16
-    w = 64
-    h = 64
+    num_cols = 15 
+    num_rows = 8
+    w = 64 * 2
+    h = 64 * 2
 
-    dirs = "data"
+    dirs = "data.1"
     data = []
     for d in dirs.split(','):
         data += Common.load_data(d)
@@ -75,6 +75,7 @@ if __name__ == '__main__':
     random.shuffle(data)
 
     overview_img = Image.new("RGBA",(w * num_cols, h * num_rows), (0,0,0))
+    font = ImageFont.truetype("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf", 24)
     gen = DataGenerator(data, batch_size=num_rows * num_cols)
     X,y = gen.next()
     draw = ImageDraw.Draw(overview_img)
@@ -88,9 +89,9 @@ if __name__ == '__main__':
             if len(img.shape) == 3 and img.shape[2] == 1:
                 img = img.reshape(img.shape[0:2])
             img = Image.fromarray(img)
-            img.thumbnail((w,h), Image.ANTIALIAS)
+            img = img.resize((w,h), Image.BILINEAR)
             angle = y[idx]
             overview_img.paste(img, (xi,yi))
-            draw.text((xi,yi), "%.2f" % angle, fill = (255,0,0))
+            draw.text((xi,yi), "%.2f" % angle, fill=(0,255,0), font=font)
 
     overview_img.show()

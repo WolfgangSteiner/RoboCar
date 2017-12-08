@@ -18,8 +18,13 @@ def load_data(dir):
 
 
 def preprocess_image(img):
-#    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img = cv2.resize(img, (64,64), interpolation=cv2.INTER_CUBIC)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = img[160:,:]
+    img = cv2.resize(img, (64,32), interpolation=cv2.INTER_CUBIC)
+    return img
+
+
+def normalize_image(img):
     return img.astype('float32') / 255.0 - 0.5
 
 

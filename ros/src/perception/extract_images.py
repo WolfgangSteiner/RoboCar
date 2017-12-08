@@ -12,6 +12,7 @@ from Utils import date_file_name
 from glob import glob
 import yaml
 import argparse
+from Common import preprocess_image
 
 # Reading bag filename from command line or roslaunch parameter.
 import os
@@ -61,6 +62,7 @@ def extract_rosbag(bag_file, out_path):
                     print e
                     continue
 
+                cv_image = preprocess_image(cv_image)
                 image_path = os.path.join(out_path, "%06d" % msg.header.seq)
                 print image_path
                 cv2.imwrite(image_path + ".png", cv_image)

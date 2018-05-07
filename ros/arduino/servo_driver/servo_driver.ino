@@ -7,8 +7,8 @@ ros::NodeHandle node_handle;
 
 Servo steering, throttle;
 const int KMaxSteer = 350;
-const int KMinThrottle = -200;
-const int KMaxThrottle = 200;
+const int KMinThrottle = -400;
+const int KMaxThrottle =  400;
 bool stop_value = false;
 
 

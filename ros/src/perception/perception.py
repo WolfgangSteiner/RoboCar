@@ -7,7 +7,7 @@ import rospy
 import imageutils
 from sensor_msgs.msg import Image
 from std_msgs.msg import Int16, Float32, Bool
-from Common import preprocess_image
+from Common import preprocess_image, normalize_image
 from keras.models import load_model
 import keras
 import tensorflow as tf
@@ -35,7 +35,7 @@ class Perception(object):
         self.lock = Lock()
 
         rospy.init_node("perception", log_level=rospy.INFO)
-        rospy.Subscriber("/front_camera/image_warped", Image, self.front_camera_callback,  queue_size = 1, buff_size=2**24)
+        rospy.Subscriber("/front_camera/image_raw", Image, self.front_camera_callback,  queue_size = 1, buff_size=2**24)
         rospy.Subscriber("/autonomous_signal", Bool, self.autonomous_signal_callback)
         rospy.Subscriber("/stop_signal", Bool, self.stop_all_callback)
 
@@ -85,12 +85,14 @@ class Perception(object):
         self.lock.acquire()
         if self.model is not None:
             img = self.bridge.imgmsg_to_cv2(msg)
-            X = preprocess_image(img).reshape((1,64,64,1))
+            img = preprocess_image(img)
+            img = normalize_image(img)
+            X = img.reshape((1,64,64,1))
             with self.graph.as_default():
                 steering_value = float(self.model.predict(X, batch_size=1))
             steering_value = self.steering_filter(steering_value)
             self.publishers["steering"].publish(steering_value)
-            self.publishers["throttle"].publish(0.6)
+            self.publishers["throttle"].publish(0.40)
         self.lock.release()
 
 if __name__ == "__main__":

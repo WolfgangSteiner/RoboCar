@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import glob
 import yaml
+from __future__ import print_function
 
 
 def load_data(dir):
@@ -31,4 +32,4 @@ def normalize_image(img):
 if __name__ == "__main__":
     data = load_data("center_01")
     for d in data:
-        print d
+        print(d)

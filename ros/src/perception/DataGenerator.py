@@ -53,7 +53,7 @@ def DataGenerator(data, batch_size=32, augment_data=True):
 
             img = Image.open(file_name)
             img, angle = random_mirror(img, angle)
-            img = Common.preprocess_image(np.array(img))
+            img = Common.normalize_image(np.array(img))
             img = reshape_img(img)
             X.append(img)
             y.append(max(min(angle, 1.0), -1.0))
@@ -62,12 +62,12 @@ def DataGenerator(data, batch_size=32, augment_data=True):
 
 
 if __name__ == '__main__':
-    num_cols = 15 
+    num_cols = 8 
     num_rows = 8
-    w = 64 * 2
-    h = 64 * 2
+    w = 64 * 4
+    h = 32 * 4
 
-    dirs = "data.1"
+    dirs = "data.6"
     data = []
     for d in dirs.split(','):
         data += Common.load_data(d)
@@ -94,4 +94,5 @@ if __name__ == '__main__':
             overview_img.paste(img, (xi,yi))
             draw.text((xi,yi), "%.2f" % angle, fill=(0,255,0), font=font)
 
-    overview_img.show()
+    #overview_img.show()
+    overview_img.save("overview.png")

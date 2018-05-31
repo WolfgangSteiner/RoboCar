@@ -11,11 +11,14 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('dirs', metavar='dir', type=str, nargs='+', help="Directory containing training data.")
+parser.add_argument('--nval', type=int, default=1024)
+parser.add_argument('--mval', type=int, default=4)
+
 args = parser.parse_args()
 
-def add_convolution(m, depth, kernel_size=3):
-    m.add(Convolution2D(depth, kernel_size, kernel_size, kernel_regularizer=regularizers.l2(0.01), border_mode="same", use_bias=False))
-    m.add(BatchNormalization())
+def add_convolution(m, depth, kernel_size=3, input_shape=[]):
+    m.add(Convolution2D(depth, kernel_size, kernel_size, border_mode="same", use_bias=True, input_shape=input_shape))
+ #   m.add(BatchNormalization())
     m.add(ELU())
 
 
@@ -24,31 +27,30 @@ for d in args.dirs:
     data += load_data(d)
 
 model = Sequential()
-model.add(AveragePooling2D((8,8), input_shape=(480,640,3)))
-add_convolution(model, 1, 1)
-add_convolution(model, 16)
+add_convolution(model, 4, input_shape=(32,64,1))
 model.add(MaxPooling2D())
-add_convolution(model, 32)
+add_convolution(model, 4)
 model.add(MaxPooling2D())
-add_convolution(model, 64)
+add_convolution(model, 4)
 model.add(MaxPooling2D())
 model.add(Flatten())
-model.add(Dense(64, kernel_regularizer=regularizers.l2(0.01)))
-model.add(BatchNormalization())
+model.add(Dense(16))
 model.add(ELU())
-model.add(Dense(1, kernel_regularizer=regularizers.l2(0.01)))
-model.compile(optimizer=Adam(lr=0.0001), loss="mse")
+model.add(Dense(1))
+model.compile(optimizer=Adam(lr=0.01), loss="mse")
 
-data_train, data_val = train_test_split(data, test_size=256, random_state=42)
+data_train, data_val = data[:-args.nval], data[-args.nval:] 
+data_val = data_val[::args.mval]
+
 val_gen = DataGenerator(data_val, augment_data=False)
 train_gen = DataGenerator(data_train, augment_data=True)
 
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=4, verbose=1,min_lr=1e-7)
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=4, verbose=1,min_lr=1e-7)
 model_checkpoint = ModelCheckpoint("model.h5", monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 
 model.fit_generator(\
   train_gen,\
-  samples_per_epoch=2**11,\
+  samples_per_epoch=len(data_train),\
   nb_epoch=100,\
   validation_data=val_gen,
   nb_val_samples=len(data_val),

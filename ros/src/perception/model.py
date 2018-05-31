@@ -27,7 +27,7 @@ for d in args.dirs:
     data += load_data(d)
 
 model = Sequential()
-add_convolution(model, 4, input_shape=(32,64,1))
+add_convolution(model, 4, input_shape=(64,64,1))
 model.add(MaxPooling2D())
 add_convolution(model, 4)
 model.add(MaxPooling2D())

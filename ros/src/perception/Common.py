@@ -1,9 +1,9 @@
+from __future__ import print_function
 import pickle
 import numpy as np
 import cv2
 import glob
 import yaml
-from __future__ import print_function
 
 
 def load_data(dir):

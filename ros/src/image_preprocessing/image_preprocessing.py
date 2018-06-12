@@ -13,7 +13,7 @@ class ImagePreprocessing(object):
         self.warped_size = (900,900)
         self.calc_perspective_transform()
         rospy.init_node("image_preprocessing")
-        rospy.Subscriber("/front_camera/image_rect_color", Image, self.front_camera_callback,  queue_size = 1, buff_size=2**24)
+        rospy.Subscriber("/front_camera/image_rect", Image, self.front_camera_callback,  queue_size = 1, buff_size=2**24)
         self.publishers = {}
         self.add_image_publisher("warped")
 
@@ -52,7 +52,7 @@ class ImagePreprocessing(object):
         img = self.bridge.imgmsg_to_cv2(msg)
         img_warped = self.warp_perspective(img)
         img_warped_scaled = cv2.resize(img_warped, (256,256), interpolation=cv2.INTER_CUBIC)
-        self.publish_image("warped", img_warped_scaled, flip='y', encoding="rgb8")
+        self.publish_image("warped", img_warped_scaled, flip='y')
 
 
 if __name__ == "__main__":

@@ -35,7 +35,7 @@ class Perception(object):
         self.lock = Lock()
 
         rospy.init_node("perception", log_level=rospy.INFO)
-        rospy.Subscriber("/front_camera/image_raw", Image, self.front_camera_callback,  queue_size = 1, buff_size=2**24)
+        rospy.Subscriber("/front_camera/image_warped", Image, self.front_camera_callback,  queue_size = 1, buff_size=2**24)
         rospy.Subscriber("/autonomous_signal", Bool, self.autonomous_signal_callback)
         rospy.Subscriber("/stop_signal", Bool, self.stop_all_callback)
 
@@ -49,7 +49,7 @@ class Perception(object):
 
     def load_model(self):
         rospy.loginfo("Loading model.")
-        model_file = "model.h5"
+        model_file = "/home/wolfgang/.ros/model.h5"
 	self.model = load_model(model_file)
         self.model._make_predict_function()
 	self.graph = tf.get_default_graph()

@@ -29,8 +29,8 @@ class RemoteControl(object):
         self.joy_deadband = 0.1
         self.last_steer = 0.0
         self.last_throttle = 0.0
-        self.fixed_throttle_slow = 0.55
-        self.fixed_throttle_fast = 0.75
+        self.fixed_throttle_slow = 0.40
+        self.fixed_throttle_fast = 0.55
 
         rospy.init_node('remote_control')
         self.publisher = {}

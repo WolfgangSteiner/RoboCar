@@ -57,7 +57,7 @@ def extract_rosbag(bag_file, out_path):
 
             elif topic == "/front_camera/image_warped":
                 try:
-                    cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")
+                    cv_image = bridge.imgmsg_to_cv2(msg)
                 except CvBridgeError, e:
                     print e
                     continue

@@ -6,12 +6,13 @@
     <rosparam>
       video_device: /dev/video1
       autoexposure: false
-      exposure: 128
+      exposure: 150
       gain: 100
+      framerate: 30
     </rosparam>
   </node>
-  <node name="image_proc" pkg="image_proc" type="image_proc" ns="front_camera" /> 
-  <node name="image_preprocessing" pkg="image_preprocessing" type="image_preprocessing.py" />
+  <node name="image_proc" pkg="image_proc" type="image_proc" ns="front_camera" />  
+  <node name="image_preprocessing" pkg="image_preprocessing" type="image_preprocessing.py" /> 
   <node name="record_telemetry" pkg="record_telemetry" type="record_telemetry.py" />
   <node name="perception" pkg="perception" type="perception.py" /> 
 </launch>

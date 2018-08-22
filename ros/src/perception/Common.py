@@ -25,6 +25,13 @@ def preprocess_image(img):
     return img
 
 
+def crop_image(img, crop_x, crop_y):
+    h,w = img.shape
+    x1,x2 = crop_x
+    y1,y2 = crop_y
+    return img[y1:h-y2,x1:w-x2]
+
+
 def normalize_image(img):
     return img.astype('float32') / 255.0 - 0.5
 

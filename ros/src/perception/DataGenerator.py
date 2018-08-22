@@ -3,6 +3,7 @@ from PIL import Image, ImageOps, ImageDraw, ImageFilter, ImageFont
 import Common
 import math, random
 import os
+import cv2
 
 max_steering_angle = 20.0
 
@@ -36,8 +37,15 @@ def reshape_img(img):
     return img.reshape(shape)
 
 
+def scale_img(img, scale):
+    if scale == 1:
+        return img
+    else:
+        w,h = img.size
+        return img.resize((w//scale,h//scale), Image.ANTIALIAS)
 
-def DataGenerator(data, batch_size=32, augment_data=True):
+
+def DataGenerator(data, batch_size=32, augment_data=True, scale=1, crop_x=[0,0], crop_y=[0,0]):
     num_data = len(data)
     idx = 0
 
@@ -48,12 +56,14 @@ def DataGenerator(data, batch_size=32, augment_data=True):
             while True:
                 file_name, angle = data[idx]
                 idx = (idx + 1) % num_data
-                if True or angle >= 0.01 or random.random() < 0.25:
+                if angle >= 0.01 or random.random() < 0.25:
                     break
 
             img = Image.open(file_name)
             img, angle = random_mirror(img, angle)
+            img = scale_img(img, scale)
             img = Common.normalize_image(np.array(img))
+            img = Common.crop_image(img, crop_x, crop_y)
             img = reshape_img(img)
             X.append(img)
             y.append(max(min(angle, 1.0), -1.0))

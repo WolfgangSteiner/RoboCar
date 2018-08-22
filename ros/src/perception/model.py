@@ -1,73 +1,150 @@
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, ELU, LeakyReLU, MaxPooling2D, AveragePooling2D, BatchNormalization
-from keras.layers.convolutional import Convolution2D
+from keras.layers import Dense, Dropout, Flatten
+from keras.layers import ELU, LeakyReLU, ReLU
+from keras.layers import MaxPooling2D, AveragePooling2D
+from keras.layers import BatchNormalization
+from keras.layers.convolutional import Conv2D
 from keras.callbacks import  ReduceLROnPlateau,EarlyStopping,ModelCheckpoint
 from keras.optimizers import Adam
-from keras import regularizers
+from keras import regularizers, metrics
 from sklearn.model_selection import train_test_split
 from Common import load_data
 from DataGenerator import DataGenerator
-import argparse
+import click
+import random
 
-parser = argparse.ArgumentParser()
-parser.add_argument('dirs', metavar='dir', type=str, nargs='+', help="Directory containing training data.")
-#parser.add_argument('--num-filters', type=int, default=8)
-parser.add_argument('--conv', type=str, default="8,8,8")
-parser.add_argument('--dense', type=str, default="16")
-parser.add_argument('--regularization', type=float, default=0.001)
-parser.add_argument('--learning-rate', type=float, default=0.001)
-parser.add_argument('--nval', type=int, default=1024)
-parser.add_argument('--mval', type=int, default=4)
-parser.add_argument('--batch-size', type=int, default=32)
-
-args = parser.parse_args()
-args.conv = [int(i) for i in args.conv.split(',')]
-args.dense = [int(i) for i in args.dense.split(',')]
+def regularizer(r):
+    if r == 0.0:
+        return None
+    else:
+        return regularizers.l2(r)
 
 
-def add_convolution(m, depth, kernel_size=3, input_shape=[]):
-    m.add(Convolution2D(depth, kernel_size, kernel_size, border_mode="same", use_bias=True, input_shape=input_shape))
- #   m.add(BatchNormalization())
-    m.add(ELU())
+def get_activation(s):
+    if s == "elu":
+        return ELU()
+    elif s == "relu":
+        return ReLU()
+    elif s == "leaky_relu":
+        return LeakyReLU()
 
 
-data = []
-for d in args.dirs:
-    data += load_data(d)
-model = Sequential()
-input_shape = (64,64,1)
+def add_convolution(m, depth, kernel_size=3, input_shape=[], regularization=0.0, activation="elu", batch_normalization=False):
+    m.add(Conv2D(
+        depth, 
+        (kernel_size, kernel_size),
+        padding="same",
+        use_bias=True,
+        input_shape=input_shape,
+        kernel_regularizer=regularizer(regularization)))
+    if batch_normalization:
+        m.add(BatchNormalization())
+    m.add(get_activation(activation))
 
-for n in args.conv:
-    add_convolution(model, n, input_shape=input_shape)
-    add_convolution(model, n)
-    model.add(MaxPooling2D())
-    input_shape = []
 
-model.add(Flatten())
+@click.command()
+@click.argument('dirs', nargs=-1, type=click.Path(exists=True))
+@click.option('--conv', type=str, default="8-8-8", show_default=True)
+@click.option('--dense', type=str, default="32", show_default=True)
+@click.option('--conv-regularization', type=float, default=0.0, show_default=True)
+@click.option('--dense-regularization', type=float, default=0.0, show_default=True)
+@click.option('--dense-dropout', type=float, default=0.0, show_default=True)
+@click.option('--learning-rate', type=float, default=0.001, show_default=True)
+@click.option('--nval', type=int, default=1024, show_default=True)
+@click.option('--mval', type=int, default=4, show_default=True)
+@click.option('--batch-size', type=int, default=32, show_default=True)
+@click.option('--num-epochs', type=int, default=100, show_default=True)
+@click.option('--samples-per-epoch', type=int, default=-1, show_default=True)
+@click.option('--activation', type=click.Choice(['elu', 'relu', 'leaky_relu']), default='elu', show_default=True)
+@click.option('--batch-normalization/--no-batch-normalization', default=True, show_default=True)
+@click.option('--scale', type=int, default=1, show_default=True)
+@click.option('--crop-bottom', type=int, default=0, show_default=True)
+@click.option('--crop-top', type=int, default=0, show_default=True)
+@click.option('--summary', is_flag=True, show_default=True) 
+def train_model(dirs, conv, dense, conv_regularization, dense_regularization, learning_rate, nval, mval, batch_size, num_epochs, samples_per_epoch, dense_dropout, activation, batch_normalization, scale, crop_top, crop_bottom, summary):
+    #conv = [int(i) for i in conv.split(',')]
+    dense = [int(_) for _ in dense.split(',')]
+    input_shape = (64 // scale - crop_top - crop_bottom, 64 // scale, 1)
+    model = Sequential()
+    
+    for i in conv.split('-'):
+        if i != '':
+            for j in i.split(','):
+                j = [int(k) for k in j.split('x')]
+                if len(j) == 1:
+                    j.append(3)
+                (depth, kernel_size) = j
+                click.echo(f"Conv {kernel_size}x{kernel_size}x{depth}")
+                add_convolution(model, depth, input_shape=input_shape, regularization=conv_regularization, activation=activation, batch_normalization=batch_normalization)
+                input_shape = []
+ 
+        click.echo(f"MaxPooling")
+        model.add(MaxPooling2D())
+        input_shape = []
 
-for n in args.dense:
-  model.add(Dense(n, kernel_regularizer=regularizers.l2(args.regularization)))
-  model.add(ELU())
+    model.add(Flatten())
+    
+    for n in dense:
+        if n == 0:
+            continue
+        
+        if dense_dropout > 0.0:
+            click.echo(f"Dropout {dense_droupout}")
+            model.add(Dropout(dense_dropout))
 
-model.add(Dense(1))
-model.compile(optimizer=Adam(lr=args.learning_rate), loss="mse")
+        click.echo(f"Dense {n}")
+        model.add(Dense(n, kernel_regularizer=regularizer(dense_regularization)))
+        model.add(get_activation(activation))
+    
+    model.add(Dense(1))
 
-data_train, data_val = data[:-args.nval], data[-args.nval:] 
-data_val = data_val[::args.mval]
+    click.echo("Compiling model...")
+    model.compile(optimizer=Adam(lr=learning_rate), loss="mse", metrics=[metrics.mse])
+    
+    if summary:
+        print(model.summary())
 
-val_gen = DataGenerator(data_val, augment_data=False)
-train_gen = DataGenerator(data_train, batch_size=args.batch_size, augment_data=True)
+    click.echo("Loading data...")
+    data = []
+    for d in dirs:
+        data += load_data(d)
+    
+    data_train, data_val = data[:-nval], data[-nval:]
+    if samples_per_epoch == -1:
+        samples_per_epoch = len(data_train)
 
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=4, verbose=1,min_lr=1e-7)
-model_checkpoint = ModelCheckpoint("model.h5", monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+    random.seed(42)
+    random.shuffle(data_train)
 
-model.fit_generator(\
-  train_gen,\
-  samples_per_epoch=len(data_train),\
-  nb_epoch=100,\
-  validation_data=val_gen,
-  nb_val_samples=len(data_val),
-  max_q_size=32,
-  nb_worker=8,
-  pickle_safe=True,
-  callbacks=[reduce_lr, model_checkpoint])
+    data_val = data_val[::mval]
+
+    crop_x = [0,0]
+    crop_y=[crop_top, crop_bottom]
+    val_gen = DataGenerator(data_val, augment_data=False, scale=scale, crop_x=crop_x, crop_y=crop_y)
+    train_gen = DataGenerator(data_train, batch_size=batch_size, augment_data=True, scale=scale, crop_x=crop_x, crop_y=crop_y)
+    
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=4, verbose=1,min_lr=1e-7)
+    
+    model_checkpoint = ModelCheckpoint(
+      "model.h5", 
+      monitor='val_loss', 
+      verbose=1,
+      save_best_only=True,
+      save_weights_only=False,
+      mode='auto',
+      period=1)
+     
+    model.fit_generator(
+      train_gen,
+      samples_per_epoch=samples_per_epoch,
+      nb_epoch=num_epochs,
+      validation_data=val_gen,
+      nb_val_samples=len(data_val),
+      max_q_size=32,
+      nb_worker=8,
+      pickle_safe=True,
+      callbacks=[reduce_lr, model_checkpoint])
+
+
+if __name__ == "__main__":
+    train_model()

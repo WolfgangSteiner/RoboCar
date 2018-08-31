@@ -1,0 +1,12 @@
+[Unit]
+Description=jetstone service
+After=roscore.service
+Requires=roscore.service
+
+[Service]
+User=wolfgang
+ExecStartPre=/bin/sleep 5
+ExecStart=/bin/bash -c "source /home/wolfgang/RoboCar/ros/devel/setup.bash; roslaunch /home/wolfgang/RoboCar/ros/launch/jetstone.launch"
+
+[Install]
+WantedBy=multi-user.target

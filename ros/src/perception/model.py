@@ -89,7 +89,7 @@ def train_model(dirs, conv, dense, conv_regularization, dense_regularization, le
             continue
         
         if dense_dropout > 0.0:
-            click.echo(f"Dropout {dense_droupout}")
+            click.echo(f"Dropout {dense_dropout}")
             model.add(Dropout(dense_dropout))
 
         click.echo(f"Dense {n}")

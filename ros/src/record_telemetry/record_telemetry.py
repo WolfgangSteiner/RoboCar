@@ -2,16 +2,20 @@
 
 import rospy
 import rosbag
-import datetime
+from datetime import datetime
 from std_msgs.msg import Int16, Float32, Bool
 from sensor_msgs.msg import Image
 from threading import Lock
+import os
 
 
-def bag_filename(dir="."):
-    new_file_name = datetime.datetime.now().isoformat('_').replace(":","-") + ".bag"
-    if dir != ".":
-        new_file_name = dir + '/' + new_file_name
+
+def bag_filename(dir="/home/wolfgang/RoboCar/rosbags"):
+    now = datetime.now()
+    dst_dir = os.path.join(dir, datetime.date(now).isoformat())
+    new_file_name = now.isoformat('_').replace(":","-") + ".bag"
+    os.system("mkdir -p %s" % dst_dir)
+    new_file_name = os.path.join(dst_dir, new_file_name)
 
     return new_file_name  
 

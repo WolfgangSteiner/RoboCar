@@ -8,6 +8,7 @@ from sensor_msgs.msg import Image
 from threading import Lock
 import os
 
+hostname = os.uname()[1]
 
 
 def bag_filename(dir="/home/wolfgang/RoboCar/rosbags"):
@@ -41,10 +42,15 @@ class RecordTelemetry(object):
         rospy.init_node('record_telemetry')
         rospy.Subscriber("/steering_value", Float32, self.steering_callback)
         rospy.Subscriber("/throttle_value", Float32, self.throttle_callback)
-        rospy.Subscriber("/front_camera/image_raw", Image, self.image_raw_callback)
-        rospy.Subscriber("/front_camera/image_rect", Image, self.image_rect_callback)
-        rospy.Subscriber("/front_camera/image_warped", Image, self.image_warped_callback)
         rospy.Subscriber("/record_telemetry", Bool, self.record_callback)
+    
+        if hostname == 'bumblebee':
+            rospy.Subscriber("/front_camera/image_processed", Image, self.image_processed_callback)
+        
+        else:
+            rospy.Subscriber("/front_camera/image_raw", Image, self.image_raw_callback)
+            rospy.Subscriber("/front_camera/image_rect", Image, self.image_rect_callback)
+            rospy.Subscriber("/front_camera/image_warped", Image, self.image_warped_callback)
         
         rospy.spin()
 
@@ -96,6 +102,14 @@ class RecordTelemetry(object):
         if self.bag is not None:
             self.bag.write("/front_camera/image_warped", msg)
         self.lock.release()
+    
+    
+    def image_processed_callback(self, msg):
+        self.lock.acquire()
+        if self.bag is not None:
+            self.bag.write("/front_camera/image_processed", msg)
+        self.lock.release()
+
 
 if __name__ == "__main__":
     try:

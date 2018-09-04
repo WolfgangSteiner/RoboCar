@@ -49,7 +49,7 @@ class Perception(object):
         self.steering_filter = LowPassFilter(0.1)
         self.latency_filter = LowPassFilter(0.1)
         self.lock = Lock()
-        self.throttle_value_max = 0.5
+        self.throttle_value_max = 0.35
         self.throttle_value_min = 0.35
 
         self.last_timestamp = time.time()
@@ -61,7 +61,7 @@ class Perception(object):
         self.publishers["perception_fps"] = rospy.Publisher("/perception_fps", Float32)
 
         rospy.init_node("perception", log_level=rospy.INFO)
-        rospy.Subscriber("/front_camera/image_warped", Image, self.front_camera_callback,  queue_size = 1, buff_size=2**24)
+        rospy.Subscriber("/front_camera/image_processed", Image, self.front_camera_callback,  queue_size = 1, buff_size=2**24)
         rospy.Subscriber("/autonomous_signal", Bool, self.autonomous_signal_callback)
         rospy.Subscriber("/stop_signal", Bool, self.stop_all_callback)
 
@@ -149,7 +149,6 @@ class Perception(object):
         if self.is_autonomous:
             assert(self.model is not None)
             img = self.bridge.imgmsg_to_cv2(msg)
-            img = preprocess_image(img)
             img = normalize_image(img)
             X = img.reshape((1,64,64,1))
             with self.graph.as_default():

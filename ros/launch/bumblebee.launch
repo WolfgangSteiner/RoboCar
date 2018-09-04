@@ -1,20 +1,20 @@
 <launch>
+  <node name="joy_node" pkg="joy" type="joy_node" />
   <node name="remote_control" pkg="remote_control" type="remote_control.py" />
-  <node name="pi_motor_controller" pkg="pi_motor_controller" type="pi_motor_controller.py" />
-  <node name="front_camera" pkg="usb_cam" type="usb_cam_node">
-   <rosparam>
-        video_device: /dev/video0
-        image_width: 640
-        image_height: 480
-        pixel_format: yuyv
-        framerate: 10
-        autoexposure: False
-        exposure: 32 
-  </rosparam>
+  <node name="record_button" pkg="remote_control" type="record_button.py" />
+  <node name="car_control_serial" pkg="rosserial_python" type="serial_node.py" args="/dev/ttyUSB0" /> 
+  <node name="front_camera" pkg="usb_cam" type="usb_cam_node" >
+    <rosparam>
+      video_device: /dev/video0
+      autoexposure: false
+      image_width:  640
+      image_height: 480
+      exposure: 512
+      gain: 100
+      framerate: 10
+    </rosparam>
   </node>
-
-  <!-- <node name="image_proc" pkg="image_proc" type="image_proc" ns="front_camera"/> -->
-  <!-- <node name="image_preprocessing" pkg="image_preprocessing" type="image_preprocessing.py" /> -->
-  <!-- <node name="record_telemetry" pkg="record_telemetry" type="record_telemetry.py" /> -->
-  <!-- <node name="perception" pkg="perception" type="perception.py" /> -->
+  <node name="image_preprocessing" pkg="image_preprocessing" type="image_preprocessing_bumblebee.py" /> 
+  <node name="record_telemetry" pkg="record_telemetry" type="record_telemetry.py" />
+  <node name="perception" pkg="perception" type="perception.py" /> 
 </launch>

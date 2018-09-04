@@ -21,7 +21,7 @@ def load_data(dir):
 
 def load_data_from_pickle_file(pickle_file):
     data = []
-    print(f"{pickle_file} ... ", end='')
+    print("%s ... " % pickle_file, end='')
     with gzip.open(pickle_file, "rb") as f:
         while True:
             try:          
@@ -29,7 +29,7 @@ def load_data_from_pickle_file(pickle_file):
             except EOFError:
                 break
 
-    print(f"{len(data)} images")
+    print("%d images" % len(data))
     return data
 
 
@@ -42,7 +42,7 @@ def load_pickled_data(path):
         pickle_files.sort()
         for pickle_file in pickle_files:
             data += (load_data_from_pickle_file(pickle_file))
-        print(f"Total: {len(data)} images")
+        print("Total: %d images" % len(data))
         return data
 
 

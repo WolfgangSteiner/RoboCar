@@ -1,24 +1,18 @@
 #! /usr/bin/python
 
-import argparse
 import os
 import sys
 import rospy
 from std_msgs.msg import Float32
 
-parser = argparse.ArgumentParser()
-parser.add_argument("direction", type=str)
-args = parser.parse_args()
-
-if args.direction == "left":
-    delta = -1.0
-elif args.direction == "right":
-    delta = 1.0
-elif args.direction == "center":
+if len(sys.argv) == 1 or sys.argv[1] == "center":
     delta = 0.0
+elif sys.argv[1] == "left":
+    delta = -1.0
+elif sys.argv[1] == "right":
+    delta = 1.0
 else:
-    print("Invalid direction argument")
-    exit()
+    delta = float(sys.argv[1]) 
 
 
 def on_shutdown():

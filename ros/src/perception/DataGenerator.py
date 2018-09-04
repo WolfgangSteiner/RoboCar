@@ -54,14 +54,16 @@ def DataGenerator(data, batch_size=32, augment_data=True, scale=1, crop_x=[0,0],
         y = []
         for i in range(0,batch_size):
             while True:
-                file_name, angle = data[idx]
+                img, angle, throttle = data[idx]
                 idx = (idx + 1) % num_data
-                if angle >= 0.01 or random.random() < 0.25:
+                if True or angle >= 0.01 or random.random() < 0.25:
                     break
 
-            img = Image.open(file_name)
+            img = Image.fromarray(img)
             img, angle = random_mirror(img, angle)
             img = scale_img(img, scale)
+            img = np.array(img)
+            img = Common.resize_image(img, (64,64))
             img = Common.normalize_image(np.array(img))
             img = Common.crop_image(img, crop_x, crop_y)
             img = reshape_img(img)

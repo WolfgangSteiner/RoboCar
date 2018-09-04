@@ -3,6 +3,11 @@ import rospy
 from std_msgs.msg import String,Float32,Bool
 from sensor_msgs.msg import Joy
 import numpy as np
+import os
+
+hostname = os.uname()[1]
+min_throttle = 0.275 if hostname == 'bumblebee' else 0.4
+max_throttle = 0.35 if hostname == 'bumblebee' else 0.55
 
 
 class ButtonHandler(object):
@@ -29,8 +34,9 @@ class RemoteControl(object):
         self.joy_deadband = 0.1
         self.last_steer = 0.0
         self.last_throttle = 0.0
-        self.fixed_throttle_slow = 0.40
-        self.fixed_throttle_fast = 0.55
+        self.fixed_throttle_slow = min_throttle
+        self.fixed_throttle_fast = max_throttle
+        self.steering_is_locked = False
 
         rospy.init_node('remote_control')
         self.publisher = {}
@@ -64,6 +70,7 @@ class RemoteControl(object):
     def on_all_stop(self):
         self.publisher["throttle"].publish(0.0)
         self.publisher["steering"].publish(0.0)
+        self.steering_is_locked = False
 
 
     def joy_cb(self, msg):
@@ -84,7 +91,12 @@ class RemoteControl(object):
             self.publisher["throttle"].publish(throttle)
             self.last_throttle = throttle
 
-        if steer != self.last_steer:
+        if not self.steering_is_locked and msg.buttons[7] and abs(steer) == 1.0:
+            self.publisher["steering"].publish(steer)
+            self.steering_is_locked = True
+
+        
+        if not self.steering_is_locked and steer != self.last_steer:
             self.publisher["steering"].publish(steer)
             self.last_steer = steer
 

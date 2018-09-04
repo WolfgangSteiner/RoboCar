@@ -8,10 +8,14 @@ from keras.callbacks import  ReduceLROnPlateau,EarlyStopping,ModelCheckpoint
 from keras.optimizers import Adam
 from keras import regularizers, metrics
 from sklearn.model_selection import train_test_split
-from Common import load_data
+from Common import load_data, load_pickled_data
 from DataGenerator import DataGenerator
 import click
 import random
+import os
+
+
+ROBOT = os.environ["ROBOT"]
 
 def regularizer(r):
     if r == 0.0:
@@ -89,7 +93,7 @@ def train_model(dirs, conv, dense, conv_regularization, dense_regularization, le
             continue
         
         if dense_dropout > 0.0:
-            click.echo(f"Dropout {dense_droupout}")
+            click.echo(f"Dropout {dense_dropout}")
             model.add(Dropout(dense_dropout))
 
         click.echo(f"Dense {n}")
@@ -106,8 +110,11 @@ def train_model(dirs, conv, dense, conv_regularization, dense_regularization, le
 
     click.echo("Loading data...")
     data = []
+    if not len(dirs):
+        dirs = [f'/home/wolfgang/RoboCar/data.{ROBOT}']
     for d in dirs:
-        data += load_data(d)
+        data += load_pickled_data(d)
+    click.echo(f"{len(data)} training images")
     
     data_train, data_val = data[:-nval], data[-nval:]
     if samples_per_epoch == -1:
@@ -126,7 +133,7 @@ def train_model(dirs, conv, dense, conv_regularization, dense_regularization, le
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=4, verbose=1,min_lr=1e-7)
     
     model_checkpoint = ModelCheckpoint(
-      "model.h5", 
+      f"model.{ROBOT}.h5", 
       monitor='val_loss', 
       verbose=1,
       save_best_only=True,

@@ -1,0 +1,13 @@
+[Unit]
+Description=Xbox controller driver daemon
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=1
+User=root
+PIDFile=/var/run/xboxdrv.pid
+ExecStart=/usr/local/bin/xboxdrv --daemon --detach --pid-file /var/run/xboxdrv.pid --dbus disabled --silent --mimic-xpad
+
+[Install]
+WantedBy=multi-user.target

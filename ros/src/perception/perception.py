@@ -156,9 +156,9 @@ class Perception(object):
             X = img.reshape((1,64 - crop[0] - crop[1],64,1))
             with self.graph.as_default():
                 steering_value = float(self.model.predict(X, batch_size=1))
-            if abs(steering_value) > 0.5:
-                steering_value *= 2.0
-                steering_value = max(-1.0, min(1.0, steering_value))
+#            if abs(steering_value) > 0.5:
+#                steering_value *= 2.0
+#                steering_value = max(-1.0, min(1.0, steering_value))
             mean_steering_value = self.steering_filter(steering_value)
             throttle = self.calc_throttle(mean_steering_value)
             self.publishers["steering"].publish(steering_value)

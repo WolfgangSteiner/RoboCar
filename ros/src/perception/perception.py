@@ -7,7 +7,7 @@ import rospy
 import imageutils
 from sensor_msgs.msg import Image
 from std_msgs.msg import Int16, Float32, Bool
-from Common import preprocess_image, normalize_image
+from Common import preprocess_image, normalize_image, crop_image
 from keras.models import load_model
 import keras
 import tensorflow as tf
@@ -151,7 +151,9 @@ class Perception(object):
             img = self.bridge.imgmsg_to_cv2(msg)
             img = preprocess_image(img)
             img = normalize_image(img)
-            X = img.reshape((1,64,64,1))
+            crop = (0,0)
+            img = crop_image(img, (0,0), crop)
+            X = img.reshape((1,64 - crop[0] - crop[1],64,1))
             with self.graph.as_default():
                 steering_value = float(self.model.predict(X, batch_size=1))
             if abs(steering_value) > 0.5:
